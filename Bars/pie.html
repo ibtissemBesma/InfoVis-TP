@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://d3js.org/d3.v3.min.js"></script>
+    <script src="https://d3js.org/d3.v4.js"></script>
+    <script src="https://code.jquery.com/jquery-3.5.0.js"></script>
+    <meta charset="utf-8">
+   
+
+</head>
+<body>
+  <div class="container">
+    <div class="row">     
+      <div class="col-1"><a href="..\D3TreeGraph\tree.html">Tree</a></div>
+      <div class="col-1"><a href="..\pie\pie.html">Pie</a></div>
+      <div class="col-1"><a href="pie.html">Bars</a></div>
+    </div>
+  </div>
+    <div id="my_dataviz"></div>
+ 
+   
+    
+<script>
+    
+    // set the dimensions and margins of the graph
+var margin = {top: 10, right: 30, bottom: 20, left: 50},
+    width = 360 - margin.left - margin.right,
+    height = 350 - margin.top - margin.bottom;
+
+// append the svg object to the body of the page
+var svg1 = d3.select("body")
+  .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom + 50)
+  .append("g")
+    .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")");
+var svg2 = d3.select("body")
+  .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom + 50)
+  .append("g")
+    .attr("transform",
+          "translate(" + margin.left + "," + margin.top + ")");
+
+// Parse the Data
+d3.csv("donnees.csv", function(data) {
+
+  // List of subgroups = header of the csv files = soil condition here
+  var subgroups = data.columns.slice(1)
+  console.log(subgroups)
+  // List of groups = species here = value of the first column called group -> I show them on the X axis
+  var groups = d3.map(data, function(d){return(d.group)}).keys()
+  console.log(groups)
+  // Add X axis
+  var x = d3.scaleBand()
+      .domain(groups)
+      .range([0, width])
+      .padding([0.2])
+  svg1.append("g")
+    .attr("transform", "translate(0," + height + ")")
+    .call(d3.axisBottom(x).tickSizeOuter(0));
+
+  // Add Y axis
+  var y = d3.scaleLinear()
+    .domain([0, 70])
+    .range([ height, 0 ]);
+  svg1.append("g")
+    .call(d3.axisLeft(y));
+
+  // color palette = one color per subgroup
+  var color = d3.scaleOrdinal()
+    .domain(subgroups)
+    .range(['#377eb8','#e41a1c'])
+
+  //stack the data? --> stack per subgroup
+  var stackedData = d3.stack()
+    .keys(subgroups)
+    (data)
+
+  // Show the bars
+  svg1.append("g")
+    .selectAll("g")
+    // Enter in the stack data = loop key per key = group per group
+    .data(stackedData)
+    .enter().append("g")
+      .attr("fill", function(d) { return color(d.key); })
+      .selectAll("rect")
+      // enter a second time = loop subgroup per subgroup to add all rectangles
+      .data(function(d) { return d; })
+      .enter().append("rect")
+        .attr("x", function(d) { return x(d.data.group); })
+        .attr("y", function(d) { return y(d[1]); })
+        .attr("height", function(d) { return y(d[0]) - y(d[1]); })
+        .attr("width",x.bandwidth())
+        .on("mouseover",function(d){svg1.append("text")
+                                      .style("fill", "red")
+                                       .style("font-size", "20px")
+                                      .text(function(d) {
+                                        console.log(d)
+                                         return (d.data.group); } )
+                                    });
+        //.on("mouseout",actionMU);
+})
+// Parse the Data
+d3.csv("donnees2.csv", function(data) {
+
+// List of subgroups = header of the csv files = soil condition here
+var subgroups = data.columns.slice(1)
+console.log(subgroups)
+// List of groups = species here = value of the first column called group -> I show them on the X axis
+var groups = d3.map(data, function(d){return(d.group)}).keys()
+console.log(groups)
+// Add X axis
+var x = d3.scaleBand()
+    .domain(groups)
+    .range([0, width])
+    .padding([0.2])
+svg2.append("g")
+  .attr("transform", "translate(0," + height + ")")
+  .call(d3.axisBottom(x).tickSizeOuter(0));
+
+// Add Y axis
+var y = d3.scaleLinear()
+  .domain([0, 70])
+  .range([ height, 0 ]);
+svg2.append("g")
+  .call(d3.axisLeft(y));
+
+// color palette = one color per subgroup
+var color = d3.scaleOrdinal()
+  .domain(subgroups)
+  .range(['#377eb8','#e41a1c'])
+
+//stack the data? --> stack per subgroup
+var stackedData = d3.stack()
+  .keys(subgroups)
+  (data)
+
+// Show the bars
+svg2.append("g")
+  .selectAll("g")
+  // Enter in the stack data = loop key per key = group per group
+  .data(stackedData)
+  .enter().append("g")
+    .attr("fill", function(d) { return color(d.key); })
+    .selectAll("rect")
+    // enter a second time = loop subgroup per subgroup to add all rectangles
+    .data(function(d) { return d; })
+    .enter().append("rect")
+      .attr("x", function(d) { return x(d.data.group); })
+      .attr("y", function(d) { return y(d[1]); })
+      .attr("height", function(d) { return y(d[0]) - y(d[1]); })
+      .attr("width",x.bandwidth())
+      .on("mouseover",function(d){svg2.append("text")
+                                    .style("fill", "red")
+                                     .style("font-size", "20px")
+                                    .text(function(d) {
+                                      console.log(d)
+                                       return (d.data.group); } )
+                                  });
+      //.on("mouseout",actionMU);
+})
+ var recNon = svg1.append("rect")
+                  .attr("width",10)
+                  .attr("height",10)
+                  .attr("x",200)
+                  .attr("y",100)
+                  .attr("fill","#e41a1c");
+  var textNon= svg1.append("text")
+              .style("fill", "black")
+              .style("font-size", "13px")
+              .attr("text-anchor", "start")
+              .text("Oui")
+              .attr("x",213)
+              .attr("y",110);
+  var recOui = svg1.append("rect")
+                  .attr("width",10)
+                  .attr("height",10)
+                  .attr("x",200)
+                  .attr("y",112)
+                  .attr("fill","#377eb8");
+  var textNon= svg1.append("text")
+              .style("fill", "black")
+              .style("font-size", "13px")
+              .attr("text-anchor", "start")
+              .text("Non")
+              .attr("x",213)
+              .attr("y",122);
+
+
+  var recNon2 = svg2.append("rect")
+                  .attr("width",10)
+                  .attr("height",10)
+                  .attr("x",200)
+                  .attr("y",100)
+                  .attr("fill","#e41a1c");
+  var textNon2= svg2.append("text")
+              .style("fill", "black")
+              .style("font-size", "13px")
+              .attr("text-anchor", "start")
+              .text("Oui")
+              .attr("x",213)
+              .attr("y",110);
+  var recOui2 = svg2.append("rect")
+                  .attr("width",10)
+                  .attr("height",10)
+                  .attr("x",200)
+                  .attr("y",112)
+                  .attr("fill","#377eb8");
+  var textNon2 = svg2.append("text")
+              .style("fill", "black")
+              .style("font-size", "13px")
+              .attr("text-anchor", "start")
+              .text("Non")
+              .attr("x",213)
+              .attr("y",122);
+
+  var titreDia= svg1.append("text")
+              .style("fill", "black")
+              .style("font-size", "12px")
+              .attr("text-anchor", "start")
+              .text("Statistiques fumeur / Non fumeur par activité professionnelle")
+              .attr("x",0)
+              .attr("y",360);
+
+  var titreDia2= svg2.append("text")
+              .style("fill", "black")
+              .style("font-size", "12px")
+              .attr("text-anchor", "start")
+              .text("Statistiques fumeur / Non fumeur par sexe")
+              .attr("x",0)
+              .attr("y",360);
+
+  function actionMO (){
+          d3.select(this)
+            .attr("fill","black")
+ 
+       }    
+ 
+       function actionMU (){
+        d3.select(this)
+            .attr("fill","blue")
+ 
+       } 
+                
+
+    
+
+</script>
+</body>
+</html>
